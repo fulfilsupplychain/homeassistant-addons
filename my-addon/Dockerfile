@@ -1,15 +1,13 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Install Python and system tools
+# Install Python and system monitoring tools
 RUN apk add --no-cache \
     bash \
     curl \
     jq \
     python3 \
-    py3-psutil \
-    lm-sensors \
-    procps
+    py3-psutil
 
 # Copy the sensor publisher
 COPY rootfs /
