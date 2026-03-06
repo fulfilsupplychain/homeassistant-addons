@@ -158,6 +158,9 @@ def publish_disks():
     # Skip bind-mounted files (e.g. /etc/resolv.conf) — only real directories
     SKIP_MOUNTS = {"/etc/resolv.conf", "/etc/hostname", "/etc/hosts"}
 
+    largest_disk = None
+    largest_size = 0
+
     for part in psutil.disk_partitions(all=False):
         if part.mountpoint in SKIP_MOUNTS:
             continue
@@ -166,11 +169,13 @@ def publish_disks():
         except (PermissionError, OSError):
             continue
 
-        # Sanitize mountpoint for entity_id (e.g. / → root, /mnt/data → mnt_data)
-        mount_slug = sanitize_entity_slug(part.mountpoint) or "root"
+        # Sanitize mountpoint for entity_id
+        # '/' → 'root', '/config' → 'config', '/mnt/data' → 'mnt_data'
+        slug = sanitize_entity_slug(part.mountpoint)
+        mount_slug = slug if slug else "root"
         entity_id = f"{ENTITY_PREFIX}_disk_{mount_slug}"
 
-        post_state(entity_id, str(round(usage.percent, 1)), {
+        attrs = {
             "friendly_name": f"System Monitor Disk ({part.mountpoint})",
             "unit_of_measurement": "%",
             "icon": "mdi:harddisk",
@@ -184,7 +189,21 @@ def publish_disks():
             "total_bytes": usage.total,
             "used_bytes": usage.used,
             "free_bytes": usage.free,
-        })
+        }
+
+        post_state(entity_id, str(round(usage.percent, 1)), attrs)
+
+        # Track the largest partition for the primary disk sensor
+        if usage.total > largest_size:
+            largest_size = usage.total
+            largest_disk = (usage, attrs)
+
+    # Always publish a 'disk_primary' sensor pointing to the largest partition
+    if largest_disk:
+        usage, attrs = largest_disk
+        primary_attrs = dict(attrs)
+        primary_attrs["friendly_name"] = "System Monitor Disk (Primary)"
+        post_state(f"{ENTITY_PREFIX}_disk_primary", str(round(usage.percent, 1)), primary_attrs)
 
 
 def publish_temperatures():
@@ -324,9 +343,6 @@ def main():
     psutil.cpu_percent(percpu=True)
     time.sleep(1)
 
-    # Publish static info once
-    publish_host_info()
-
     cycle = 0
     while True:
         cycle += 1
@@ -339,6 +355,7 @@ def main():
             publish_network()
             publish_uptime()
             publish_top_processes()
+            publish_host_info()
 
             # Temperatures less frequently (every 3rd cycle)
             if cycle % 3 == 1:

@@ -1,29 +1,8 @@
-##############################################################################
-# System Monitor Dashboard for Home Assistant
-#
-# HOW TO ADD THIS DASHBOARD TO YOUR HA SIDEBAR:
-#
-#   Step 1: Go to Settings → Dashboards → + ADD DASHBOARD
-#   Step 2: Select "New dashboard from scratch"
-#   Step 3: Title: "System Monitor", Icon: "mdi:chart-box"
-#           ✅ Check "Show in sidebar"
-#           Click CREATE
-#   Step 4: Open the new "System Monitor" from your sidebar
-#   Step 5: Click the pencil icon (top right) to enter edit mode
-#   Step 6: Click the ⋮ menu (top right) → "Raw configuration editor"
-#   Step 7: Select ALL text in the editor and DELETE it
-#   Step 8: Paste EVERYTHING below this comment block
-#   Step 9: Click SAVE
-#
-##############################################################################
-
 views:
   - title: Overview
     path: overview
     icon: mdi:monitor-dashboard
     cards:
-
-      # ── Row 1: Gauge Cards ──────────────────────────────
       - type: horizontal-stack
         cards:
           - type: gauge
@@ -34,7 +13,6 @@ views:
               yellow: 50
               red: 80
             needle: true
-
           - type: gauge
             entity: sensor.system_monitor_ram_usage
             name: RAM
@@ -43,7 +21,6 @@ views:
               yellow: 60
               red: 85
             needle: true
-
           - type: gauge
             entity: sensor.system_monitor_swap_usage
             name: Swap
@@ -52,31 +29,26 @@ views:
               yellow: 50
               red: 80
             needle: true
-
           - type: gauge
-            entity: sensor.system_monitor_disk_root
+            entity: sensor.system_monitor_disk_primary
             name: Disk
             severity:
               green: 0
               yellow: 70
               red: 90
             needle: true
-
-      # ── Row 2: CPU & Memory History ─────────────────────
       - type: history-graph
         title: CPU & RAM History
         hours_to_show: 2
         entities:
           - entity: sensor.system_monitor_cpu_usage
-            name: CPU %
+            name: CPU
           - entity: sensor.system_monitor_ram_usage
-            name: RAM %
-
-      # ── Row 3: Details ──────────────────────────────────
+            name: RAM
       - type: horizontal-stack
         cards:
           - type: entities
-            title: "⚡ CPU"
+            title: CPU
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_cpu_usage
@@ -84,33 +56,29 @@ views:
               - entity: sensor.system_monitor_cpu_frequency
                 name: Frequency
               - entity: sensor.system_monitor_load_1m
-                name: Load (1m)
-
+                name: Load 1m
           - type: entities
-            title: "💾 Memory"
+            title: Memory
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_ram_usage
-                name: RAM %
+                name: RAM
               - entity: sensor.system_monitor_ram_used
                 name: RAM Used
               - entity: sensor.system_monitor_swap_usage
-                name: Swap %
-
-      # ── Row 4: Network ─────────────────────────────────
+                name: Swap
       - type: horizontal-stack
         cards:
           - type: entities
-            title: "🌐 Network"
+            title: Network
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_net_sent
                 name: Sent
               - entity: sensor.system_monitor_net_received
                 name: Received
-
           - type: entities
-            title: "🖥️ System"
+            title: System
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_uptime
@@ -119,21 +87,17 @@ views:
                 name: Host
               - entity: sensor.system_monitor_top_processes
                 name: Processes
-
-      # ── Row 5: Network History ──────────────────────────
       - type: history-graph
         title: Network Traffic
         hours_to_show: 2
         entities:
           - entity: sensor.system_monitor_net_sent
-            name: Sent (MB)
+            name: Sent
           - entity: sensor.system_monitor_net_received
-            name: Received (MB)
-
-      # ── Row 6: Disk History ─────────────────────────────
+            name: Received
       - type: history-graph
-        title: Disk Usage (24h)
+        title: Disk Usage 24h
         hours_to_show: 24
         entities:
-          - entity: sensor.system_monitor_disk_root
-            name: Root (/)
+          - entity: sensor.system_monitor_disk_primary
+            name: Root
