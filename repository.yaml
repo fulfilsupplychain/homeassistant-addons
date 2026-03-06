@@ -2,3 +2,5 @@
 name: My Home Assistant Add-ons
 url: https://github.com/fulfilsupplychain/homeassistant-addons
 maintainer: Fulfil Supply Chain <admin@fulfilsupplychain.com>
+version: 1.0.0
+license: MIT

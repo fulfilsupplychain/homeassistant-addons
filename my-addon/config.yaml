@@ -1,8 +1,8 @@
 ---
-name: "My Addon"
-version: "1.0.0"
+name: "System Monitor Dashboard"
+version: "1.1.0"
 slug: "my-addon"
-description: "A custom Home Assistant add-on"
+description: "Real-time web dashboard showing CPU, RAM, disk usage, temperatures, and network stats of your Home Assistant host."
 url: "https://github.com/fulfilsupplychain/homeassistant-addons/tree/main/my-addon"
 arch:
   - amd64
@@ -15,11 +15,16 @@ boot: auto
 init: false
 homeassistant_api: true
 hassio_api: true
+ingress: true
+ingress_port: 8099
+ingress_stream: false
+panel_icon: "mdi:chart-box"
+panel_title: "System Monitor"
 map:
   - config:rw
 options:
-  message: "Hello from My Addon!"
+  refresh_interval: 2
   log_level: "info"
 schema:
-  message: str
+  refresh_interval: "int(1,60)"
   log_level: list(trace|debug|info|notice|warning|error|fatal)
