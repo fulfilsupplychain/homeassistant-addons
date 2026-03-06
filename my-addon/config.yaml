@@ -3,7 +3,7 @@ name: "My Addon"
 version: "1.0.0"
 slug: "my-addon"
 description: "A custom Home Assistant add-on"
-url: "https://github.com/YOUR_GITHUB_USERNAME/homeassistant-addons/tree/main/my-addon"
+url: "https://github.com/fulfilsupplychain/homeassistant-addons/tree/main/my-addon"
 arch:
   - amd64
   - aarch64

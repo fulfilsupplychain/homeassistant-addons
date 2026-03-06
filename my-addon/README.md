@@ -12,7 +12,7 @@ This add-on provides a starting template for developing your own Home Assistant 
 2. Click the **⋮** menu (top right) → **Repositories**.
 3. Add this repository URL:
    ```
-   https://github.com/YOUR_GITHUB_USERNAME/homeassistant-addons
+   https://github.com/fulfilsupplychain/homeassistant-addons
    ```
 4. Find **My Addon** in the store and click **Install**.
 
@@ -32,4 +32,4 @@ log_level: info
 
 ## Support
 
-- Open an issue on the [GitHub repository](https://github.com/YOUR_GITHUB_USERNAME/homeassistant-addons/issues).
+- Open an issue on the [GitHub repository](https://github.com/fulfilsupplychain/homeassistant-addons/issues).

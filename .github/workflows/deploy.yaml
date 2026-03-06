@@ -1,0 +1,179 @@
+name: Deploy Home Assistant Add-ons
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 1. Lint & Validate add-on configuration
+  # ──────────────────────────────────────────────
+  lint:
+    name: Lint & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔍 Validate repository.yaml
+        run: |
+          echo "::group::Checking repository.yaml exists"
+          if [ ! -f repository.yaml ]; then
+            echo "::error::repository.yaml not found!"
+            exit 1
+          fi
+          echo "repository.yaml found ✅"
+          echo "::endgroup::"
+
+      - name: 🔍 Validate add-on configs
+        run: |
+          for addon_dir in */; do
+            if [ -f "${addon_dir}config.yaml" ]; then
+              echo "::group::Validating ${addon_dir}config.yaml"
+              # Check required fields
+              for field in name version slug description arch; do
+                if ! grep -q "^${field}:" "${addon_dir}config.yaml"; then
+                  echo "::error::Missing required field '${field}' in ${addon_dir}config.yaml"
+                  exit 1
+                fi
+              done
+              echo "${addon_dir}config.yaml is valid ✅"
+              echo "::endgroup::"
+            fi
+          done
+
+      - name: 🔍 Check Dockerfiles exist
+        run: |
+          for addon_dir in */; do
+            if [ -f "${addon_dir}config.yaml" ]; then
+              if [ ! -f "${addon_dir}Dockerfile" ]; then
+                echo "::error::Dockerfile missing in ${addon_dir}"
+                exit 1
+              fi
+              echo "${addon_dir}Dockerfile found ✅"
+            fi
+          done
+
+      - name: 📋 Lint shell scripts
+        run: |
+          for script in $(find . -name "*.sh" -type f); do
+            echo "Checking ${script}..."
+            bash -n "${script}" 2>&1 || true
+          done
+
+  # ──────────────────────────────────────────────
+  # 2. Build add-on Docker images (test only)
+  # ──────────────────────────────────────────────
+  build:
+    name: Build Test
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        addon:
+          - my-addon
+        arch:
+          - amd64
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ℹ️ Gather add-on info
+        id: info
+        run: |
+          VERSION=$(grep '^version:' ${{ matrix.addon }}/config.yaml | awk '{print $2}' | tr -d '"')
+          SLUG=$(grep '^slug:' ${{ matrix.addon }}/config.yaml | awk '{print $2}' | tr -d '"')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "slug=${SLUG}" >> $GITHUB_OUTPUT
+
+      - name: 🏗️ Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔨 Build Docker image (test)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.addon }}
+          file: ${{ matrix.addon }}/Dockerfile
+          push: false
+          tags: |
+            local/${{ steps.info.outputs.slug }}:${{ steps.info.outputs.version }}
+            local/${{ steps.info.outputs.slug }}:latest
+          build-args: |
+            BUILD_FROM=ghcr.io/home-assistant/${{ matrix.arch }}-base:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ──────────────────────────────────────────────
+  # 3. Deploy — publish to GitHub (on push to main)
+  # ──────────────────────────────────────────────
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: ⬇️ Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏷️ Create version tags
+        run: |
+          for addon_dir in */; do
+            if [ -f "${addon_dir}config.yaml" ]; then
+              SLUG=$(grep '^slug:' "${addon_dir}config.yaml" | awk '{print $2}' | tr -d '"')
+              VERSION=$(grep '^version:' "${addon_dir}config.yaml" | awk '{print $2}' | tr -d '"')
+              TAG="${SLUG}-v${VERSION}"
+
+              # Only create tag if it doesn't already exist
+              if ! git rev-parse "${TAG}" >/dev/null 2>&1; then
+                echo "Creating tag: ${TAG}"
+                git tag "${TAG}" -m "Release ${SLUG} v${VERSION}"
+                git push origin "${TAG}"
+              else
+                echo "Tag ${TAG} already exists, skipping."
+              fi
+            fi
+          done
+
+      - name: 📦 Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for addon_dir in */; do
+            if [ -f "${addon_dir}config.yaml" ]; then
+              SLUG=$(grep '^slug:' "${addon_dir}config.yaml" | awk '{print $2}' | tr -d '"')
+              VERSION=$(grep '^version:' "${addon_dir}config.yaml" | awk '{print $2}' | tr -d '"')
+              TAG="${SLUG}-v${VERSION}"
+              ADDON_NAME=$(grep '^name:' "${addon_dir}config.yaml" | sed 's/^name: *//' | tr -d '"')
+
+              # Check if release already exists
+              if gh release view "${TAG}" >/dev/null 2>&1; then
+                echo "Release ${TAG} already exists, skipping."
+                continue
+              fi
+
+              # Read changelog if available
+              NOTES="Release of ${ADDON_NAME} v${VERSION}"
+              if [ -f "${addon_dir}CHANGELOG.md" ]; then
+                NOTES=$(cat "${addon_dir}CHANGELOG.md")
+              fi
+
+              echo "Creating release: ${TAG}"
+              gh release create "${TAG}" \
+                --title "${ADDON_NAME} v${VERSION}" \
+                --notes "${NOTES}" \
+                --latest
+            fi
+          done
