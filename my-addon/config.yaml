@@ -1,0 +1,25 @@
+---
+name: "My Addon"
+version: "1.0.0"
+slug: "my-addon"
+description: "A custom Home Assistant add-on"
+url: "https://github.com/YOUR_GITHUB_USERNAME/homeassistant-addons/tree/main/my-addon"
+arch:
+  - amd64
+  - aarch64
+  - armv7
+  - armhf
+  - i386
+startup: services
+boot: auto
+init: false
+homeassistant_api: true
+hassio_api: true
+map:
+  - config:rw
+options:
+  message: "Hello from My Addon!"
+  log_level: "info"
+schema:
+  message: str
+  log_level: list(trace|debug|info|notice|warning|error|fatal)
