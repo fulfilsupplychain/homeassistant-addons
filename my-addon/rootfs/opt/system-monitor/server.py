@@ -6,6 +6,7 @@ sensor entities using the Supervisor API → HA REST API.
 """
 
 import json
+import re
 import os
 import time
 import socket
@@ -28,6 +29,14 @@ HEADERS = {
 }
 
 ENTITY_PREFIX = "sensor.system_monitor"
+
+
+def sanitize_entity_slug(text):
+    """Convert text to a valid HA entity ID fragment (lowercase, a-z 0-9 _ only)."""
+    slug = text.lower().strip("/")
+    slug = re.sub(r'[^a-z0-9]+', '_', slug)  # Replace any non-alphanumeric with _
+    slug = slug.strip('_')                    # Remove leading/trailing underscores
+    return slug or "unknown"
 
 
 # ─── API Helper ─────────────────────────────────────────────────────────────────
@@ -146,14 +155,19 @@ def publish_memory():
 
 def publish_disks():
     """Publish disk usage metrics as HA sensors."""
+    # Skip bind-mounted files (e.g. /etc/resolv.conf) — only real directories
+    SKIP_MOUNTS = {"/etc/resolv.conf", "/etc/hostname", "/etc/hosts"}
+
     for part in psutil.disk_partitions(all=False):
+        if part.mountpoint in SKIP_MOUNTS:
+            continue
         try:
             usage = psutil.disk_usage(part.mountpoint)
-        except PermissionError:
+        except (PermissionError, OSError):
             continue
 
-        # Clean the mountpoint for entity_id (e.g. / → root, /mnt/data → mnt_data)
-        mount_slug = part.mountpoint.strip("/").replace("/", "_") or "root"
+        # Sanitize mountpoint for entity_id (e.g. / → root, /mnt/data → mnt_data)
+        mount_slug = sanitize_entity_slug(part.mountpoint) or "root"
         entity_id = f"{ENTITY_PREFIX}_disk_{mount_slug}"
 
         post_state(entity_id, str(round(usage.percent, 1)), {
@@ -186,7 +200,7 @@ def publish_temperatures():
     for group_name, sensors in temps.items():
         for i, sensor in enumerate(sensors):
             label = sensor.label or f"{group_name}_{i}"
-            label_slug = label.lower().replace(" ", "_").replace("-", "_")
+            label_slug = sanitize_entity_slug(label)
             entity_id = f"{ENTITY_PREFIX}_temp_{label_slug}"
 
             attrs = {
