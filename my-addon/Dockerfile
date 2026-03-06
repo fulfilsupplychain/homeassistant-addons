@@ -7,13 +7,11 @@ RUN apk add --no-cache \
     curl \
     jq \
     python3 \
-    py3-pip \
     py3-psutil \
     lm-sensors \
-    procps \
-    sysstat
+    procps
 
-# Copy the web application
+# Copy the sensor publisher
 COPY rootfs /
 
 # Copy the entrypoint

@@ -1,8 +1,8 @@
 ---
-name: "System Monitor Dashboard"
-version: "1.1.0"
+name: "System Monitor"
+version: "2.0.0"
 slug: "my-addon"
-description: "Real-time web dashboard showing CPU, RAM, disk usage, temperatures, and network stats of your Home Assistant host."
+description: "Publishes real-time CPU, RAM, disk, temperature, and network metrics as native Home Assistant sensor entities. Use them on any HA dashboard with built-in gauge, history, and entity cards."
 url: "https://github.com/fulfilsupplychain/homeassistant-addons/tree/main/my-addon"
 arch:
   - amd64
@@ -15,15 +15,10 @@ boot: auto
 init: false
 homeassistant_api: true
 hassio_api: true
-ingress: true
-ingress_port: 8099
-ingress_stream: false
-panel_icon: "mdi:chart-box"
-panel_title: "System Monitor"
 map:
   - config:rw
 options:
-  refresh_interval: 2
+  refresh_interval: 5
   log_level: "info"
 schema:
   refresh_interval: "int(1,60)"

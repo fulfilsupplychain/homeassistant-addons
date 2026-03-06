@@ -1,16 +1,25 @@
 # Changelog
 
+## 2.0.0
+
+- 🏠 **Native HA Dashboard integration** — metrics are now published as HA sensor entities
+- 📊 Ready-to-import `dashboard.yaml` with gauges, entity cards, and history graphs
+- ⚡ CPU: usage, frequency, per-core, load averages
+- 💾 RAM: usage %, used GB
+- 🔄 Swap: usage %
+- 💿 Disk: all mounted partitions
+- 🌡️ Temperatures: all detected sensors with thresholds
+- 🌐 Network: bytes/packets sent & received
+- ⏱️ Uptime: hours with human-readable string
+- 🖥️ Host info: hostname, platform, architecture
+- 📊 Top processes: top 5 by CPU usage
+- 🔄 Configurable refresh interval (1–60 seconds)
+- ❌ Removed standalone web dashboard (replaced by native HA integration)
+
 ## 1.1.0
 
-- 🖥️ System Monitor Dashboard with real-time stats
-- ⚡ CPU usage (total + per-core) with frequency and load
-- 💾 RAM and Swap monitoring with circular gauges
-- 💿 Disk partition usage with progress bars
-- 🌡️ Temperature sensor readings with color-coded warnings
-- 🌐 Network I/O counters (bytes & packets)
-- 📊 Top 10 processes by CPU usage
-- 🎨 Dark mode glassmorphism UI with smooth animations
-- 🏠 Home Assistant Ingress integration (sidebar panel)
+- 🖥️ Standalone web dashboard with real-time stats
+- 🎨 Dark mode glassmorphism UI
 
 ## 1.0.0
 
