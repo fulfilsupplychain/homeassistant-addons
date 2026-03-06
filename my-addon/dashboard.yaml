@@ -1,46 +1,31 @@
 ##############################################################################
 # System Monitor Dashboard for Home Assistant
-# ─────────────────────────────────────────────────────────────────────────
 #
-# HOW TO IMPORT THIS DASHBOARD:
+# HOW TO ADD THIS DASHBOARD TO YOUR HA SIDEBAR:
 #
-#   1. In HA, go to Settings → Dashboards → + Add Dashboard
-#   2. Name it "System Monitor", pick an icon (mdi:chart-box)
-#   3. Open the new dashboard → click ⋮ → Edit dashboard
-#   4. Click ⋮ → Raw configuration editor
-#   5. Paste the YAML content below (the 'views:' section)
-#   6. Click Save
-#
-# ALTERNATIVE — via configuration.yaml:
-#
-#   lovelace:
-#     mode: yaml
-#     dashboards:
-#       lovelace-system-monitor:
-#         mode: yaml
-#         title: System Monitor
-#         icon: mdi:chart-box
-#         show_in_sidebar: true
-#         filename: dashboards/system-monitor.yaml
-#
-#   Then copy this file to <config>/dashboards/system-monitor.yaml
+#   Step 1: Go to Settings → Dashboards → + ADD DASHBOARD
+#   Step 2: Select "New dashboard from scratch"
+#   Step 3: Title: "System Monitor", Icon: "mdi:chart-box"
+#           ✅ Check "Show in sidebar"
+#           Click CREATE
+#   Step 4: Open the new "System Monitor" from your sidebar
+#   Step 5: Click the pencil icon (top right) to enter edit mode
+#   Step 6: Click the ⋮ menu (top right) → "Raw configuration editor"
+#   Step 7: Select ALL text in the editor and DELETE it
+#   Step 8: Paste EVERYTHING below this comment block
+#   Step 9: Click SAVE
 #
 ##############################################################################
 
 views:
-  - title: System Monitor
-    path: system-monitor
-    icon: mdi:chart-box
-    type: sections
-    sections:
+  - title: Overview
+    path: overview
+    icon: mdi:monitor-dashboard
+    cards:
 
-      # ──────────────────────────────────────────────────
-      # Section 1: Overview Gauges
-      # ──────────────────────────────────────────────────
-      - title: System Overview
-        type: grid
+      # ── Row 1: Gauge Cards ──────────────────────────────
+      - type: horizontal-stack
         cards:
-
           - type: gauge
             entity: sensor.system_monitor_cpu_usage
             name: CPU
@@ -70,97 +55,85 @@ views:
 
           - type: gauge
             entity: sensor.system_monitor_disk_root
-            name: Disk (/)
+            name: Disk
             severity:
               green: 0
               yellow: 70
               red: 90
             needle: true
 
-      # ──────────────────────────────────────────────────
-      # Section 2: Detailed Info
-      # ──────────────────────────────────────────────────
-      - title: Details
-        type: grid
-        cards:
+      # ── Row 2: CPU & Memory History ─────────────────────
+      - type: history-graph
+        title: CPU & RAM History
+        hours_to_show: 2
+        entities:
+          - entity: sensor.system_monitor_cpu_usage
+            name: CPU %
+          - entity: sensor.system_monitor_ram_usage
+            name: RAM %
 
+      # ── Row 3: Details ──────────────────────────────────
+      - type: horizontal-stack
+        cards:
           - type: entities
-            title: "⚡ CPU Details"
+            title: "⚡ CPU"
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_cpu_usage
-                name: CPU Usage
+                name: Usage
               - entity: sensor.system_monitor_cpu_frequency
                 name: Frequency
               - entity: sensor.system_monitor_load_1m
-                name: Load Average (1m)
-              - entity: sensor.system_monitor_cpu_cores
-                name: Per-Core Summary
+                name: Load (1m)
 
           - type: entities
-            title: "💾 Memory Details"
+            title: "💾 Memory"
             show_header_toggle: false
             entities:
               - entity: sensor.system_monitor_ram_usage
-                name: RAM Usage
+                name: RAM %
               - entity: sensor.system_monitor_ram_used
                 name: RAM Used
               - entity: sensor.system_monitor_swap_usage
-                name: Swap Usage
+                name: Swap %
 
+      # ── Row 4: Network ─────────────────────────────────
+      - type: horizontal-stack
+        cards:
           - type: entities
             title: "🌐 Network"
             show_header_toggle: false
-            entities:
-              - entity: sensor.system_monitor_net_sent
-                name: Total Sent
-              - entity: sensor.system_monitor_net_received
-                name: Total Received
-
-          - type: entities
-            title: "🖥️ Host Info"
-            show_header_toggle: false
-            entities:
-              - entity: sensor.system_monitor_host_info
-                name: Hostname
-              - entity: sensor.system_monitor_uptime
-                name: Uptime
-
-      # ──────────────────────────────────────────────────
-      # Section 3: History Graphs
-      # ──────────────────────────────────────────────────
-      - title: History
-        type: grid
-        cards:
-
-          - type: history-graph
-            title: "CPU & RAM (1 hour)"
-            hours_to_show: 1
-            entities:
-              - entity: sensor.system_monitor_cpu_usage
-                name: CPU
-              - entity: sensor.system_monitor_ram_usage
-                name: RAM
-
-          - type: history-graph
-            title: "Disk Usage (24 hours)"
-            hours_to_show: 24
-            entities:
-              - entity: sensor.system_monitor_disk_root
-                name: Disk (/)
-
-          - type: history-graph
-            title: "Network Traffic (1 hour)"
-            hours_to_show: 1
             entities:
               - entity: sensor.system_monitor_net_sent
                 name: Sent
               - entity: sensor.system_monitor_net_received
                 name: Received
 
-          - type: history-graph
-            title: "Load Average (1 hour)"
-            hours_to_show: 1
+          - type: entities
+            title: "🖥️ System"
+            show_header_toggle: false
             entities:
-              - entity: sensor.system_monitor_load_1m
-                name: Load 1m
+              - entity: sensor.system_monitor_uptime
+                name: Uptime
+              - entity: sensor.system_monitor_host_info
+                name: Host
+              - entity: sensor.system_monitor_top_processes
+                name: Processes
+
+      # ── Row 5: Network History ──────────────────────────
+      - type: history-graph
+        title: Network Traffic
+        hours_to_show: 2
+        entities:
+          - entity: sensor.system_monitor_net_sent
+            name: Sent (MB)
+          - entity: sensor.system_monitor_net_received
+            name: Received (MB)
+
+      # ── Row 6: Disk History ─────────────────────────────
+      - type: history-graph
+        title: Disk Usage (24h)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.system_monitor_disk_root
+            name: Root (/)
