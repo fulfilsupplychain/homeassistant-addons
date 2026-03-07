@@ -1,13 +1,14 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Install Python and system monitoring tools
+# Install Python, MQTT client, and system monitoring tools
 RUN apk add --no-cache \
     bash \
     curl \
     jq \
     python3 \
-    py3-psutil
+    py3-psutil \
+    py3-paho-mqtt
 
 # Copy the sensor publisher
 COPY rootfs /

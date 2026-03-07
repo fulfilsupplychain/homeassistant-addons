@@ -1,8 +1,8 @@
 ---
 name: "System Monitor"
-version: "2.0.0"
+version: "3.0.0"
 slug: "my-addon"
-description: "Real-time CPU, RAM, disk, and temperature monitoring as native HA sensors."
+description: "Real-time system monitoring with REST and MQTT transport. Tracks CPU, RAM, disk, temps, network, and service health."
 url: "https://github.com/fulfilsupplychain/homeassistant-addons/tree/main/my-addon"
 arch:
   - amd64
@@ -20,7 +20,22 @@ map:
   - config:rw
 options:
   refresh_interval: 5
+  transport_mode: "rest"
+  mqtt_host: "core-mosquitto"
+  mqtt_port: 1883
+  mqtt_user: ""
+  mqtt_pass: ""
+  mqtt_topic_prefix: "system_monitor"
+  watched_services: []
   log_level: "info"
 schema:
   refresh_interval: "int(1,60)"
+  transport_mode: "list(rest|mqtt)"
+  mqtt_host: "str?"
+  mqtt_port: "int(1,65535)?"
+  mqtt_user: "str?"
+  mqtt_pass: "password?"
+  mqtt_topic_prefix: "str?"
+  watched_services:
+    - "str"
   log_level: "list(trace|debug|info|notice|warning|error|fatal)"
