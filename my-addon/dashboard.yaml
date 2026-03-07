@@ -37,14 +37,22 @@ views:
               yellow: 70
               red: 90
             needle: true
-      - type: history-graph
-        title: CPU and RAM History
-        hours_to_show: 2
-        entities:
-          - entity: sensor.system_monitor_cpu_usage
-            name: CPU
-          - entity: sensor.system_monitor_ram_usage
-            name: RAM
+      - type: horizontal-stack
+        cards:
+          - type: history-graph
+            title: CPU & RAM
+            hours_to_show: 2
+            entities:
+              - entity: sensor.system_monitor_cpu_usage
+                name: CPU
+              - entity: sensor.system_monitor_ram_usage
+                name: RAM
+          - type: history-graph
+            title: CPU Load
+            hours_to_show: 2
+            entities:
+              - entity: sensor.system_monitor_load_1m
+                name: Load 1m
       - type: horizontal-stack
         cards:
           - type: entities
@@ -57,6 +65,8 @@ views:
                 name: Frequency
               - entity: sensor.system_monitor_load_1m
                 name: Load 1m
+              - entity: sensor.system_monitor_cpu_cores
+                name: Cores
           - type: entities
             title: Memory
             show_header_toggle: false
@@ -67,16 +77,6 @@ views:
                 name: RAM Used
               - entity: sensor.system_monitor_swap_usage
                 name: Swap
-      - type: horizontal-stack
-        cards:
-          - type: entities
-            title: Network
-            show_header_toggle: false
-            entities:
-              - entity: sensor.system_monitor_net_sent
-                name: Sent
-              - entity: sensor.system_monitor_net_received
-                name: Received
           - type: entities
             title: System
             show_header_toggle: false
@@ -87,26 +87,24 @@ views:
                 name: Host
               - entity: sensor.system_monitor_top_processes
                 name: Processes
-      - type: entities
-        title: Service Health
-        show_header_toggle: false
-        entities:
-          - entity: binary_sensor.system_monitor_service_docker
-            name: Docker
-          - entity: binary_sensor.system_monitor_service_nginx
-            name: Nginx
-          - entity: binary_sensor.system_monitor_service_sshd
-            name: SSH
-          - entity: binary_sensor.system_monitor_service_mosquitto
-            name: Mosquitto
-      - type: history-graph
-        title: Network Traffic
-        hours_to_show: 2
-        entities:
-          - entity: sensor.system_monitor_net_sent
-            name: Sent
-          - entity: sensor.system_monitor_net_received
-            name: Received
+      - type: horizontal-stack
+        cards:
+          - type: history-graph
+            title: Network Traffic
+            hours_to_show: 2
+            entities:
+              - entity: sensor.system_monitor_net_sent
+                name: Sent
+              - entity: sensor.system_monitor_net_received
+                name: Received
+          - type: entities
+            title: Network Now
+            show_header_toggle: false
+            entities:
+              - entity: sensor.system_monitor_net_sent
+                name: Total Sent
+              - entity: sensor.system_monitor_net_received
+                name: Total Received
       - type: history-graph
         title: Disk Usage 24h
         hours_to_show: 24
